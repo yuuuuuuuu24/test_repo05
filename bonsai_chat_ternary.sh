@@ -147,6 +147,11 @@ if [ "$READY" -ne 1 ]; then
   exit 1
 fi
 
+if ! python3 -c "import openai" >/dev/null 2>&1; then
+  echo "openai ライブラリを再インストールします。"
+  uv pip install openai
+fi
+
 echo "Ternary Bonsai サーバが起動しました。対話プログラムを開始します。"
 
 python3 "$ROOT_DIR/interface.py"
