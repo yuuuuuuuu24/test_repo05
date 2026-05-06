@@ -83,12 +83,18 @@ fi
 SERVER_BIN="$BONSAI_DIR/bin/cpu/llama-server"
 
 if [ ! -x "$SERVER_BIN" ]; then
-  echo "llama-server を準備します。"
-  export BONSAI_MODEL="1.7B"
-  ./setup.sh
+  echo "llama-server をダウンロードします。"
 
-  # setup.sh が取得した 1-bit モデルは今回使わないので削除する
-  find "$BONSAI_DIR" -name "Bonsai-*.gguf" -delete
+  mkdir -p "$BONSAI_DIR/bin/cpu"
+
+  TMP_TAR="$BONSAI_DIR/llama-prism-bin.tar.gz"
+  LLAMA_URL="https://github.com/PrismML-Eng/llama.cpp/releases/download/prism-b8846-d104cf1/llama-prism-b8846-d104cf1-bin-ubuntu-x64.tar.gz"
+
+  curl -L --fail -o "$TMP_TAR" "$LLAMA_URL"
+  tar -xzf "$TMP_TAR" -C "$BONSAI_DIR/bin/cpu" --strip-components=1
+  rm -f "$TMP_TAR"
+
+  chmod +x "$BONSAI_DIR/bin/cpu/"*
 fi
 
 MODEL_PATH="$MODEL_DIR/$MODEL_FILE"
