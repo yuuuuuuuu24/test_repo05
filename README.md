@@ -88,3 +88,94 @@ Codespaces を停止しても，通常は作成したファイルや取得済み
 ただし，Codespace 自体を削除すると，その中に保存されていた Bonsai のモデルや仮想環境も消えます。その場合は，もう一度 `bash bonsai_chat_1bit.sh` を実行して準備し直してください。
 
 また，Bonsai は Codespaces 上の CPU で動かすため，返答に時間がかかることがあります。
+
+## 7. 使われている技術について
+
+このリポジトリでは，主に **Docker**，**GitHub Codespaces**，**ローカルLLM** という技術を使っています。
+
+### Docker
+
+Docker は，開発に必要な環境をひとまとめにして用意するための技術です。
+
+普通の開発では，学生ごとのパソコンに入っている Python や Node.js のバージョンが違ったり，必要なソフトが入っていなかったりして，「先生の環境では動くが，自分の環境では動かない」ということが起こります。
+
+Docker を使うと，あらかじめ決められた環境をもとに開発環境を作ることができます。
+
+このリポジトリでは，`.devcontainer/Dockerfile` に，開発環境に入れておきたいソフトを記述しています。
+
+たとえば，このリポジトリでは以下のようなものを事前に入れています。
+
+- Node.js
+- Gemini CLI
+- uv
+
+これにより，Codespaces を起動した時点で，授業に必要な道具がある程度そろった状態になります。
+
+### GitHub Codespaces
+
+GitHub Codespaces は，GitHub 上のリポジトリをもとに，ブラウザ上で使える開発環境を作るサービスです。
+
+自分のパソコンに Python や Node.js を直接インストールしなくても，GitHub 上に用意された開発環境でプログラムを動かせます。
+
+このリポジトリでは，Codespaces を起動すると，`.devcontainer` フォルダ内の設定をもとに開発環境が作られます。
+
+### ローカルLLM
+
+LLM は Large Language Model の略で，大規模言語モデルと呼ばれます。
+
+ChatGPT のように，文章を入力すると，それに続く自然な文章を生成するモデルです。
+
+多くの生成AIサービスでは，入力した文章をインターネット経由で外部のサーバに送り，クラウド上のAIが返答を生成します。
+
+一方で，**ローカルLLM** は，自分の環境の中でモデルを動かします。
+
+今回の場合は，Codespaces 上に Bonsai のモデルをダウンロードし，その中で LLM サーバを起動しています。
+
+つまり，今回の構成では，次のような流れでチャットが動きます。
+
+1. Bonsai のモデルを Codespaces 内に置く
+2. Bonsai のサーバを Codespaces 内で起動する
+3. Python の `interface.py` から Bonsai サーバに質問を送る
+4. Bonsai サーバが返答を生成する
+
+### Python プログラムと Bonsai サーバの関係
+
+`interface.py` は，LLM そのものではありません。
+
+`interface.py` は，起動している Bonsai サーバに文章を送り，返ってきた答えを画面に表示するプログラムです。
+
+そのため，Bonsai サーバが起動していない状態で `interface.py` だけを動かしても，チャットはできません。
+
+このリポジトリでは，`bonsai_chat_1bit.sh` が以下の処理をまとめて行います。
+
+- Bonsai の取得
+- Python 仮想環境の準備
+- 必要な Python ライブラリの準備
+- Bonsai サーバの起動
+- `interface.py` の起動
+
+そのため，利用者は基本的に次のコマンドだけでチャットを開始できます。
+
+```bash
+bash bonsai_chat_1bit.sh
+```
+
+### 今回のシステムの全体像
+
+今回のシステムは，次のような構成です。
+
+```text
+GitHub リポジトリ
+  ↓
+GitHub Codespaces
+  ↓
+Docker によって作られた開発環境
+  ↓
+Bonsai ローカルLLMサーバ
+  ↓
+Python の interface.py
+  ↓
+チャット画面
+```
+
+つまり，GitHub 上のリポジトリをもとに Codespaces を作り，その中で Docker による開発環境を使い，さらにその中でローカルLLMである Bonsai を動かしています。
